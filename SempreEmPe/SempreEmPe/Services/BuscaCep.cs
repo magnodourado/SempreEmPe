@@ -2,7 +2,6 @@
 using SempreEmPe.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -12,6 +11,7 @@ namespace SempreEmPe.Services
     public class BuscaCep : IBuscaCep
     {
         private readonly HttpClient client;
+        private Endereco endereco;
 
         public BuscaCep()
         {
@@ -25,26 +25,22 @@ namespace SempreEmPe.Services
                 PropertyNameCaseInsensitive = true
             };
 
-            string[] dicUrls = new string[]
+            var dicUrls = new Dictionary<int, string>
             {
-                "https://viacep.com.br/ws/inputcephere/jsonwww/",
-                "https://viacep.com.br/ws/inputcephere/json/",
-                "https://ws.apicep.com/cep/inputcephere.json"
+                {1,"https://viacep.com.br/ws/inputcephere/json/"},
+                {2,"https://viacep.com.br/ws/inputcephere/json/"},
+                {3,"https://ws.apicep.com/cep/inputcephere.json"}
             };
 
-            
+
             foreach (var url in dicUrls)
             {
-                var urlcompleta = url.Replace("inputcephere", cep);
+                var urlcompleta = url.Value.Replace("inputcephere", cep);
 
                 var response = await client.GetAsync(urlcompleta);
                 if (response.IsSuccessStatusCode)
                 {
-                    var conteudo = await response.Content.ReadAsStringAsync();
-
-                    var endereco = JsonSerializer.Deserialize<Endereco>(conteudo, jsonOptions);
-                    
-                    return endereco;
+                    return await ConverteEndereco(response, url.Key);
                 }
                 else
                 {
@@ -53,8 +49,43 @@ namespace SempreEmPe.Services
 
             }
 
-            throw new Exception("Cep Invalido");           
+            async Task<Endereco> ConverteEndereco(HttpResponseMessage response, int modelo)
+            {
+                var conteudo = await response.Content.ReadAsStringAsync();
+                EnderecoViaCep enderecoResponse;
+
+                switch (modelo)
+                {
+                    case 1:
+                        enderecoResponse = JsonSerializer.Deserialize<EnderecoViaCep>(conteudo, jsonOptions);
+
+                        endereco = new Endereco()
+                        {
+                            Cep = enderecoResponse.Cep,
+                            Logradouro = enderecoResponse.Logradouro,
+                            Complemento = enderecoResponse.Complemento,
+                            Bairro = enderecoResponse.Bairro,
+                            Cidade = enderecoResponse.Cidade,
+                            Uf = enderecoResponse.Uf,
+                            Ibge = enderecoResponse.Ibge,
+                            Ddd = enderecoResponse.Ddd
+                        };
+                        break;
+                    default:
+                        throw new Exception("Não foi encontrado modelo configurado para o serviço.");
+
+                }
+
+                if (endereco == null)
+                {
+                    throw new Exception("Não foi encontrado modelo configurado para o serviço.");
+                }
+
+                return endereco;
+            }
+
+            throw new Exception("Cep Inválido");
         }
- 
+
     }
 }

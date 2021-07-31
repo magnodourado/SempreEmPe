@@ -14,15 +14,24 @@ namespace SempreEmPe.Controllers
     [ApiController]
     public class BuscaCepController : ControllerBase
     {
-        
+        private readonly IBuscaCep _buscaCep;
+        public BuscaCepController(IBuscaCep buscaCep)
+        {
+            _buscaCep = buscaCep;
+        }
+
         // GET api/<BuscaCepController>/5
         [HttpGet("{cep}")]
         public Task<Endereco> Get(string cep)
         {
-            // Trocar por injeção de dependencia aqui
-            BuscaCep servico = new BuscaCep();
+            cep = cep.Replace("-", "").Replace(" ", "").Replace(".", "").Replace("_", "");
 
-            return servico.BuscaEndereco(cep);
+            if(cep.Length != 8 || String.IsNullOrEmpty(cep))
+            {
+                throw new Exception("CEP inválido.");
+            }                
+
+            return _buscaCep.BuscaEndereco(cep);
         }
 
     }
