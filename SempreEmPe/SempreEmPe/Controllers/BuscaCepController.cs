@@ -29,10 +29,9 @@ namespace SempreEmPe.Controllers
             if(cep.Length != 8 || String.IsNullOrEmpty(cep))
             {
                 throw new Exception("CEP inválido.");
-            }                
+            }
 
             return _buscaCep.BuscaEndereco(cep);
         }
-
     }
 }

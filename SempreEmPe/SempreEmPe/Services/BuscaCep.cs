@@ -25,38 +25,47 @@ namespace SempreEmPe.Services
                 PropertyNameCaseInsensitive = true
             };
 
+
+            // Incluir mais webservices aqui trocando o texto onde recebe o cep pela interpolação de strings {cep}
+            // Retorno do webservice deve ser JSON
             var dicUrls = new Dictionary<int, string>
             {
-                {1,"https://viacep.com.br/ws/inputcephere/json/"},
-                {2,"https://viacep.com.br/ws/inputcephere/json/"},
-                {3,"https://ws.apicep.com/cep/inputcephere.json"}
+                {1,$"https://viacep.com.br/ws/{cep}/jsonwww/"},
+                {2,$"https://ws.apicep.com/cep/{cep}.json"}
             };
 
 
             foreach (var url in dicUrls)
             {
-                var urlcompleta = url.Value.Replace("inputcephere", cep);
-
-                var response = await client.GetAsync(urlcompleta);
-                if (response.IsSuccessStatusCode)
+                Uri myUri;
+                if (Uri.TryCreate(url.Value, UriKind.RelativeOrAbsolute, out myUri))
                 {
-                    return await ConverteEndereco(response, url.Key);
-                }
-                else
+                    var response = await client.GetAsync(myUri.AbsoluteUri);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await ConverteEndereco(response, url.Key);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                } else
                 {
-                    continue;
+                    throw new Exception($"Url configurada para o webservice {url.Value} inválida");
                 }
 
+               
+                
             }
 
             async Task<Endereco> ConverteEndereco(HttpResponseMessage response, int modelo)
             {
                 var conteudo = await response.Content.ReadAsStringAsync();
-                EnderecoViaCep enderecoResponse;
+                dynamic enderecoResponse;
 
                 switch (modelo)
                 {
-                    case 1:
+                    case 1: //viacep.com.br
                         enderecoResponse = JsonSerializer.Deserialize<EnderecoViaCep>(conteudo, jsonOptions);
 
                         endereco = new Endereco()
@@ -69,6 +78,18 @@ namespace SempreEmPe.Services
                             Uf = enderecoResponse.Uf,
                             Ibge = enderecoResponse.Ibge,
                             Ddd = enderecoResponse.Ddd
+                        };
+                        break;
+                    case 2: //ws.apicep.com/
+                        enderecoResponse = JsonSerializer.Deserialize<EnderecoApiCep>(conteudo, jsonOptions);
+
+                        endereco = new Endereco()
+                        {
+                            Cep = enderecoResponse.code,
+                            Logradouro = enderecoResponse.address,                           
+                            Bairro = enderecoResponse.district,
+                            Cidade = enderecoResponse.city,
+                            Uf = enderecoResponse.state
                         };
                         break;
                     default:
