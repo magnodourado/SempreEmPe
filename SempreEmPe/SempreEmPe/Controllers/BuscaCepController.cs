@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SempreEmPe.DataLayer;
 using SempreEmPe.Models;
 using SempreEmPe.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -15,9 +14,12 @@ namespace SempreEmPe.Controllers
     public class BuscaCepController : ControllerBase
     {
         private readonly IBuscaCep _buscaCep;
-        public BuscaCepController(IBuscaCep buscaCep)
+        private readonly ICepBancoLocal _cepBancoLocal;
+
+        public BuscaCepController(IBuscaCep buscaCep, ICepBancoLocal cepBancoLocal)
         {
             _buscaCep = buscaCep;
+            _cepBancoLocal = cepBancoLocal;
         }
 
         // GET api/<BuscaCepController>/5
@@ -26,12 +28,14 @@ namespace SempreEmPe.Controllers
         {
             cep = cep.Replace("-", "").Replace(" ", "").Replace(".", "").Replace("_", "");
 
-            if(cep.Length != 8 || String.IsNullOrEmpty(cep))
+            if (cep.Length != 8 || String.IsNullOrEmpty(cep))
             {
                 throw new Exception("CEP inválido.");
             }
 
-            return _buscaCep.BuscaEndereco(cep);
+            //return _buscaCep.BuscaEnderecoApi(cep);
+
+            return _buscaCep.BuscaEnderecoLocal(cep, _cepBancoLocal);
         }
     }
 }

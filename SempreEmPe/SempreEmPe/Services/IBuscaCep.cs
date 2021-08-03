@@ -1,10 +1,12 @@
-﻿using SempreEmPe.Models;
+﻿using SempreEmPe.DataLayer;
+using SempreEmPe.Models;
 using System.Threading.Tasks;
 
 namespace SempreEmPe.Services
 {
     public interface IBuscaCep
     {
-        Task<Endereco> BuscaEndereco(string cep);
+        Task<Endereco> BuscaEnderecoApi(string cep);
+        Task<Endereco> BuscaEnderecoLocal(string cep, ICepBancoLocal cepBancoLocal);
     }
 }
