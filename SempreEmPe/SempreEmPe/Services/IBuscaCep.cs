@@ -8,5 +8,6 @@ namespace SempreEmPe.Services
     {
         Task<Endereco> BuscaEnderecoApi(string cep);
         Task<Endereco> BuscaEnderecoLocal(string cep, ICepBancoLocal cepBancoLocal);
+        Task<Endereco> BuscaEnderecoLocalEntity(string cep, CepCorreiosPureContext context);
     }
 }

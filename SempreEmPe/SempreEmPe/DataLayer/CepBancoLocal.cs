@@ -26,7 +26,7 @@ namespace SempreEmPe.DataLayer
                 var cmd = @"SELECT * FROM " +
                     "(SELECT A.CEP, A.TLO_TX + ' ' + A.LOG_NO AS LOGRADOURO, A.LOG_COMPLEMENTO, B.BAI_NO," +
                         "C.LOC_NO, C.UFE_SG FROM LOG_LOGRADOURO A " +
-                        "JOIN LOG_BAIRRO B ON B.BAI_NU = A.BAI_NU_INI AND A.UFE_SG = B.UFE_SG AND A.LOC_NU = B.LOC_NU " +
+                        "JOIN LOG_BAIRRO B ON B.BAI_NU = A.BAI_NU_INI AND A.UFE_SG = B.UFE_SG " +
                         "JOIN LOG_LOCALIDADE C ON A.LOC_NU = C.LOC_NU AND A.UFE_SG = C.UFE_SG UNION " +
                         "SELECT A.CEP, B.TLO_TX + ' ' + B.LOG_NO AS LOGRADOURO, B.LOG_COMPLEMENTO, " +
                         "C.BAI_NO, D.LOC_NO, D.UFE_SG FROM LOG_GRANDE_USUARIO A " +
@@ -38,6 +38,7 @@ namespace SempreEmPe.DataLayer
 
                 await connection.OpenAsync();
 
+                // Método QueryAsync pertence ao pacote Dapper
                 IEnumerable<EnderecoBancoLocal> query = await connection.QueryAsync<EnderecoBancoLocal>(cmd, new { cep }, commandTimeout: 300);
                 EnderecoBancoLocal endereco = query.SingleOrDefault();
 

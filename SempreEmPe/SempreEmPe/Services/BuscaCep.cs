@@ -1,9 +1,11 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using SempreEmPe.DataLayer;
 using SempreEmPe.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -118,6 +120,29 @@ namespace SempreEmPe.Services
                 Bairro = enderecoBancoLocal.Bai_No,
                 Cidade = enderecoBancoLocal.Loc_no,
                 Uf = enderecoBancoLocal.Ufe_Sg
+            };
+
+            return endereco;
+        }
+
+        public async Task<Endereco> BuscaEnderecoLocalEntity(string cep, CepCorreiosPureContext context)
+        {
+            var enderecoLocal = await context.LogLogradouros
+                                       .Include(l => l.LogBairro)
+                                       .Include(l => l.LogLocalidade)
+                                       .Where(l => l.Cep == cep)
+                                       .FirstOrDefaultAsync();
+
+            //Implementar a busca na tabela LOG_GRANDE_USUARIO quando não encontrar acima
+
+            endereco = new Endereco()
+            {
+                Cep = enderecoLocal.Cep,
+                Logradouro = enderecoLocal.TloTx + " " + enderecoLocal.LogNo,
+                Complemento = enderecoLocal.LogComplemento,
+                Bairro = enderecoLocal.LogBairro.BaiNo,
+                Cidade = enderecoLocal.LogLocalidade.LocNo,
+                Uf = enderecoLocal.UfeSg
             };
 
             return endereco;

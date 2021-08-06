@@ -15,11 +15,13 @@ namespace SempreEmPe.Controllers
     {
         private readonly IBuscaCep _buscaCep;
         private readonly ICepBancoLocal _cepBancoLocal;
+        private readonly CepCorreiosPureContext _context;
 
-        public BuscaCepController(IBuscaCep buscaCep, ICepBancoLocal cepBancoLocal)
+        public BuscaCepController(IBuscaCep buscaCep, ICepBancoLocal cepBancoLocal, CepCorreiosPureContext context)
         {
             _buscaCep = buscaCep;
             _cepBancoLocal = cepBancoLocal;
+            _context = context;
         }
 
         // GET api/<BuscaCepController>/5
@@ -35,7 +37,9 @@ namespace SempreEmPe.Controllers
 
             //return _buscaCep.BuscaEnderecoApi(cep);
 
-            return _buscaCep.BuscaEnderecoLocal(cep, _cepBancoLocal);
+            //return _buscaCep.BuscaEnderecoLocal(cep, _cepBancoLocal);
+
+            return _buscaCep.BuscaEnderecoLocalEntity(cep, _context);
         }
     }
 }
