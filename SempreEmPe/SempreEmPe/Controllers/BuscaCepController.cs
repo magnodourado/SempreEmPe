@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using SempreEmPe.DataLayer;
 using SempreEmPe.Models;
 using SempreEmPe.Services;
@@ -16,30 +18,51 @@ namespace SempreEmPe.Controllers
         private readonly IBuscaCep _buscaCep;
         private readonly ICepBancoLocal _cepBancoLocal;
         private readonly CepCorreiosPureContext _context;
+        private readonly IConfiguration _configuration;
 
-        public BuscaCepController(IBuscaCep buscaCep, ICepBancoLocal cepBancoLocal, CepCorreiosPureContext context)
+        public BuscaCepController(IBuscaCep buscaCep, ICepBancoLocal cepBancoLocal, CepCorreiosPureContext context, IConfiguration configuration)
         {
             _buscaCep = buscaCep;
             _cepBancoLocal = cepBancoLocal;
             _context = context;
+            _configuration = configuration;
         }
 
         // GET api/<BuscaCepController>/5
         [HttpGet("{cep}")]
-        public Task<Endereco> Get(string cep)
+        public async Task<IActionResult> Get(string cep)
         {
+
+            Endereco endereco;
             cep = cep.Replace("-", "").Replace(" ", "").Replace(".", "").Replace("_", "");
 
             if (cep.Length != 8 || String.IsNullOrEmpty(cep))
             {
-                throw new Exception("CEP inválido.");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "O cep recebido não é válido.");
             }
 
-            //return _buscaCep.BuscaEnderecoApi(cep);
-
+            if (bool.Parse(_configuration["ConsultaBancoLocal"])){
+                endereco = await _buscaCep.BuscaEnderecoLocalEntity(cep, _context);
+                if (endereco == null)
+                {
+                    endereco = await _buscaCep.BuscaEnderecoApi(cep);
+                }
+            }
+            else
+            {
+                endereco = await _buscaCep.BuscaEnderecoApi(cep);
+            }
+                        
+            //Consulta com comando SQL 
             //return _buscaCep.BuscaEnderecoLocal(cep, _cepBancoLocal);
 
-            return _buscaCep.BuscaEnderecoLocalEntity(cep, _context);
+            if (endereco == null)
+            {
+                return NotFound($"O cep {cep} não foi encontrado.");
+            }
+
+            return Ok(endereco);
         }
     }
 }

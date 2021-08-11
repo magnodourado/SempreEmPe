@@ -2,8 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\SempreEmPe",
-    "\\SempreEmPe\\Controllers"
+    "\\SempreEmPe\\SempreEmPe",
+    "\\SempreEmPe\\SempreEmPe\\Services"
   ],
-  "SelectedNode": "\\SempreEmPe\\Controllers",
+  "SelectedNode": "\\SempreEmPe\\SempreEmPe\\Services\\BuscaCep.cs",
   "PreviewInSolutionExplorer": false
 }
