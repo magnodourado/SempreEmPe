@@ -128,53 +128,57 @@ namespace SempreEmPe.Services
         public async Task<Endereco> BuscaEnderecoLocalEntity(string cep, CepCorreiosPureContext context)
         {
             Endereco endereco;
-
-            // Desabilitando o change tracker
-            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-            endereco = await context.LogLogradouros
-                                       .Include(l => l.LogBairro)
-                                       .Include(l => l.LogLocalidade)
-                                       .Where(l => l.Cep == cep)
-                                       .Select(l => new Endereco
-                                       {
-                                           Cep = l.Cep,
-                                           Logradouro = l.TloTx + " " + l.LogNo,
-                                           Complemento = l.LogComplemento,
-                                           Bairro = l.LogBairro.BaiNo,
-                                           Cidade = l.LogLocalidade.LocNo,
-                                           Uf = l.UfeSg
-                                       })
-                                       .FirstOrDefaultAsync();                                     
-
-
-            if (endereco == null)
+            try
             {
-                //Filtro where aplicado em uma tabela incluída
-                
-                //enderecoLocal = await context.LogLogradouros
-                //                       .Include(l => l.LogBairro)
-                //                       .Include(l => l.LogLocalidade)
-                //                       .Include(l => l.LogGrandeUsuarios
-                //                                .Where(lg => lg.Cep == cep))
-                //                       .FirstOrDefaultAsync();
+                // Desabilitando o change tracker
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-                endereco = await context.LogGrandeUsuarios
-                                        .Include(lgu => lgu.LogLogradouro)
-                                        .Include(lgu => lgu.LogBairro)
-                                        .Include(lgu => lgu.LogLocalidade)
-                                        .Where(lgu => lgu.Cep == cep)                                        
-                                        .Select(lgu => new Endereco 
-                                        { 
-                                            Cep = lgu.Cep,
-                                            Logradouro = lgu.LogLogradouro.TloTx + " " + lgu.LogLogradouro.LogNo,
-                                            Complemento = lgu.LogLogradouro.LogComplemento,
-                                            Bairro = lgu.LogBairro.BaiNo,
-                                            Cidade = lgu.LogLocalidade.LocNo,
-                                            Uf = lgu.UfeSg
-                                        })
-                                        .FirstOrDefaultAsync();
-            }                        
+                endereco = await context.LogLogradouros
+                                           .Include(l => l.LogBairro)
+                                           .Include(l => l.LogLocalidade)
+                                           .Where(l => l.Cep == cep)
+                                           .Select(l => new Endereco
+                                           {
+                                               Cep = l.Cep,
+                                               Logradouro = l.TloTx + " " + l.LogNo,
+                                               Complemento = l.LogComplemento,
+                                               Bairro = l.LogBairro.BaiNo,
+                                               Cidade = l.LogLocalidade.LocNo,
+                                               Uf = l.UfeSg
+                                           })
+                                           .FirstOrDefaultAsync();
+
+                if (endereco == null)
+                {
+                    //Filtro where aplicado em uma tabela incluída
+
+                    //enderecoLocal = await context.LogLogradouros
+                    //                       .Include(l => l.LogBairro)
+                    //                       .Include(l => l.LogLocalidade)
+                    //                       .Include(l => l.LogGrandeUsuarios
+                    //                                .Where(lg => lg.Cep == cep))
+                    //                       .FirstOrDefaultAsync();
+
+                    endereco = await context.LogGrandeUsuarios
+                                            .Include(lgu => lgu.LogLogradouro)
+                                            .Include(lgu => lgu.LogBairro)
+                                            .Include(lgu => lgu.LogLocalidade)
+                                            .Where(lgu => lgu.Cep == cep)
+                                            .Select(lgu => new Endereco
+                                            {
+                                                Cep = lgu.Cep,
+                                                Logradouro = lgu.LogLogradouro.TloTx + " " + lgu.LogLogradouro.LogNo,
+                                                Complemento = lgu.LogLogradouro.LogComplemento,
+                                                Bairro = lgu.LogBairro.BaiNo,
+                                                Cidade = lgu.LogLocalidade.LocNo,
+                                                Uf = lgu.UfeSg
+                                            })
+                                            .FirstOrDefaultAsync();
+                }
+            } catch
+            {
+                return null;
+            }     
 
             return endereco;
         }
